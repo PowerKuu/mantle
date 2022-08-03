@@ -1,0 +1,15 @@
+{
+  "name": "mantle",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./src",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "nanoevents": "^7.0.1",
+    "normalize-path": "^3.0.0"
+  }
+}
