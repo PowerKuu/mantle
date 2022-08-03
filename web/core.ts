@@ -6,6 +6,7 @@ export type MantleTagType = keyof HTMLElementTagNameMap
 export type MantleChildren = (DynamicMantleNodeType|HTMLElementTypes|Function|string)[]
 
 const SingelFunctionIdentifier = "_element_"
+const SingelError = "$signel node has to have a parent"
 
 export class MantleNode<HTMLElementType extends HTMLElementTypes>{
     attr: Object = {}
@@ -89,7 +90,8 @@ export function $singel<SingeltonType extends (... args: any[]) => DynamicMantle
             current.destroy()
             current = update
         } else {
-            current.element.parentElement.replaceChild(update.element,current.element)
+            if (!current.element.parentElement) console.error(SingelError)
+            current.element.parentElement?.replaceChild(update.element,current.element)
             current.destroy()
             current = update
         }
