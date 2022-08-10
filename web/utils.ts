@@ -13,6 +13,7 @@ export class NanoEventEmitter<events extends EventsMap> {
   }
 
   on<E extends keyof events>(event: E, callback: events[E]) {
+    Symbol
     return this.emitter.on(event as string|number, callback)
   }
 }

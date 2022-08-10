@@ -1,5 +1,5 @@
 import normalize from 'normalize-path';
-import {NanoEventEmitter} from './utils';
+import { NanoEventEmitter } from './utils';
 import { DynamicMantleNodeType } from './core';
 
 
@@ -8,8 +8,8 @@ type MatchResultType = {
     dynamic?: Object
 }
 
-type PathCallbackReturnType = DynamicMantleNodeType|DynamicMantleNodeType[]
-type PathCallbackType = (dynamic:Object) => PathCallbackReturnType|Promise<PathCallbackReturnType>
+type MantleNodeType = DynamicMantleNodeType|DynamicMantleNodeType[]|HTMLElement|HTMLElement[]|void
+type PathCallbackType = (dynamic:Object|undefined) => MantleNodeType|Promise<MantleNodeType>
 
 type PathType = ({
     call: (source:string) => Promise<boolean>,
@@ -28,8 +28,9 @@ interface OptionsType {
 }
 
 interface RouterEventsType {
-    load: (start: boolean) => void,
-    update: (path: string) => void,
+    "load": (path: string, error: boolean) => void,
+    "path": (path: string) => void,
+    "404": (path: string) => void,
 }
 
 interface FilterTypes {
@@ -65,35 +66,41 @@ interface LanguageMapType {
     }
 }
 
-function NormalizePath(path: string): string {
-    return normalize(path)
+interface StateType {
+    path: string,
+    search: string,
 }
 
+// Deaclear variables
 const IpInfoUrl = "https://ipinfo.io/json"
 
-const DeafultOptions: OptionsType = {
+export function NormalizePath(path: string): string {
+    return normalize(path)
+}
+export const DeafultOptions: OptionsType = {
     source: window.location.pathname,
     search: window.location.search,
     lowercase: false,
 }
 
-const DeafultInjectOptions = {
+export const DeafultInjectOptions: InjectOptionsType = {
     overwrite: true,
-    target: document.getElementById("app")
+    target: document.getElementById("app") ?? document.body,
 }
+//
 
 export class Router extends NanoEventEmitter<RouterEventsType> {
     private options: OptionsType = DeafultOptions
-    paths: PathType[] = []
+    RegisteredPaths: PathType[] = []
     language: string
 
-    LastRawSource?: string
-    LastSource?: string
+    path?: string 
+    search?: string
 
     constructor(){
         super()
         this.language = navigator.language || navigator["userLanguage"]
-        window.onpopstate = (event) => this.UpdateState.bind(this)(event.state)
+        window.onpopstate = (event) => this.OnPathState.bind(this)(event.state)
     }
 
     public define(options:OptionsType) {
@@ -102,7 +109,25 @@ export class Router extends NanoEventEmitter<RouterEventsType> {
         this.options.lowercase = options.lowercase ?? DeafultOptions.lowercase
     }
 
-    public async info(): Promise<InfoType|false>{
+    public InjectItems(items: MantleNodeType, options: InjectOptionsType = DeafultInjectOptions) {
+        const {target, overwrite} = options
+        function InjectItem(item: HTMLElement | DynamicMantleNodeType) {
+            const HTMLElement = item["element"] ? item["element"] : item
+
+            if (overwrite) {
+                target.innerHTML = ""
+                target.appendChild(HTMLElement)
+            } else {
+                target.appendChild(HTMLElement)
+            }
+        }
+
+        if (!items) return
+        if (items instanceof Array) items.forEach(InjectItem)
+        else InjectItem(items)
+    }
+
+    public async UserInfo(): Promise<InfoType|false>{
         const IpInfoFetch = await fetch(IpInfoUrl)
         if (IpInfoFetch.status != 200) return false
         const IpInfo = await IpInfoFetch.json()
@@ -110,8 +135,8 @@ export class Router extends NanoEventEmitter<RouterEventsType> {
         return IpInfo
     }
 
-    public async filter<FilterType extends keyof FilterTypes>(filter:FilterType, options:FilterTypes[FilterType]):Promise<boolean> {
-        const IpInfo = await this.info()
+    public async UserFilter<FilterType extends keyof FilterTypes>(filter:FilterType, options:FilterTypes[FilterType]):Promise<boolean> {
+        const IpInfo = await this.UserInfo()
         if (!IpInfo) return false
 
         const includes = (match:string) => (options as any).includes(IpInfo[match as string])
@@ -144,81 +169,78 @@ export class Router extends NanoEventEmitter<RouterEventsType> {
         return false
     }
 
-    public add(match:string, callback:PathCallbackType, inject:InjectOptionsType = DeafultInjectOptions, priority:number = 0) {
+    public GetQuery (id: string): string {
+        return new Proxy(new URLSearchParams(this.search), {
+            get: (searchParams, prop) => searchParams.get(String(prop)),
+        })[id]
+    }
+
+
+
+    public AddPath(match:string, callback:PathCallbackType, inject:InjectOptionsType = DeafultInjectOptions, InjectPriority:number = 0) {
         const target = inject.target ?? DeafultInjectOptions.target
         const overwrite = inject.overwrite ?? DeafultInjectOptions.overwrite
         
+        if (!target) throw new Error("No target element specified")
+
         const call = async (source:string) => {
-            const InjectItem = (element) => {
-                const HTMLElement = element?.element ? element.element : element
 
-                if (overwrite) {
-                    target.innerHTML = ""
-                    target.appendChild(HTMLElement)
-                } else {
-                    target.appendChild(HTMLElement)
-                }
-            }
-    
-            const InjectItems = (item) => {
-                if (item instanceof Array) item.forEach(InjectItem)
-                else InjectItem(item)
-            }
-
-    
-            const MatchResult = this.match(match, source)
+            const MatchResult = this.MatchPath(match, source)
     
             if (MatchResult.match) {
                 const DynamicCallback = MatchResult.dynamic ?? undefined
                 const CallbackResult = await callback(DynamicCallback)
 
-                InjectItems(CallbackResult)
-
+                this.InjectItems(CallbackResult, {target, overwrite})
                 return true
             }
 
             return false
         }
 
-        this.paths.push({call, priority})
+        this.RegisteredPaths.push({call, priority: InjectPriority})
         return call
     }
 
-    private async UpdateState(state: any) {
-        const source = state?.source ?? this.options.source
+    public async UpdatePathState(path: string = this.options.source, search: string | undefined = "", reload: boolean = true) {  
+        path = NormalizePath(path)
+        const FullPath = search === "" || !search ? (path === this.path || !this.path ? (path + this.options.search) : path) : path + search
 
-        const SortedPaths = this.paths.sort((a, b) => a.priority - b.priority)
+        window.history.pushState({source: path, search}, "", FullPath)
+        if (reload) this.OnPathState({path: path, search})
+    } 
+  
+    private async OnPathState({path, search}: StateType) {
+        const RegisteredPathsStorted = this.RegisteredPaths.sort((a, b) => a.priority - b.priority)
+        const calls:boolean[] = []
 
-        this.emit("load", true)
 
-        for(var path of SortedPaths) {
-            await path.call(this.options.lowercase ? source.toLowerCase() : source)
+        this.emit("path", path)
+
+        for(var RegisteredPath of RegisteredPathsStorted) {
+            calls.push(
+                await RegisteredPath.call(this.options.lowercase ? path.toLowerCase() : path)
+            )
         }   
 
-        this.emit("load", false)
-        this.emit("update", source)
+        this.search = search
+        this.path = path
 
-        this.LastSource = source
+        const error = !calls.includes(true)
+
+        if (error) this.emit("404", path)
+        this.emit("load", path, error)
     }
 
-    public async update(source: string = this.options.source, search: string = "", reload: boolean = true) {  
-        source = NormalizePath(source)
-        const RawSource = search === "" ? (source === this.LastSource || !this.LastSource ? (source + this.options.search) : source) : source + search
 
-        window.history.pushState({source: source}, null, RawSource)
-        if (reload) this.UpdateState({source})
-    } 
-
-
-
-    private match(match:string, source: string): MatchResultType {
+    private MatchPath(match:string, source: string): MatchResultType {
         match = NormalizePath(match)
         source = NormalizePath(source)
 
-        const dynamic = /\[(\w+)\]/g
+        const DynamicMatch = /\[(\w+)\]/g
         const star = /\*/g
 
-        const RegexString = match.replaceAll(dynamic, '([^/]+)').replaceAll(star, '\\A\\Z|[\\s\\S]+')
+        const RegexString = match.replaceAll(DynamicMatch, '([^/]+)').replaceAll(star, '\\A\\Z|[\\s\\S]+')
 
         const MatchRawArray = [
             ...source.matchAll(
@@ -228,7 +250,7 @@ export class Router extends NanoEventEmitter<RouterEventsType> {
 
         const DynamicArray = [
             ["", ""],
-            ...match.matchAll(dynamic)
+            ...match.matchAll(DynamicMatch)
         ].map(([_, dynamic]) => {return dynamic})
 
         if (MatchRawArray.length <= 0) return {match: false}
@@ -253,8 +275,10 @@ export class Router extends NanoEventEmitter<RouterEventsType> {
     }
 }
 
+// Create singelton
 export const $router = new Router()
 export default $router
+//
 
 export class LanguageManger {
     private map: LanguageMapType = {}
@@ -274,4 +298,6 @@ export class LanguageManger {
 
 }
 
+// Create singelton
 export const $language = new LanguageManger()
+//
