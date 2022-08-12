@@ -150,12 +150,8 @@ const FunctionAttribute = (attr) => (value, element:DynamicMantleNodeType) => {
 const CustomAttributeMap = {
     style(value) {
         if (value instanceof Object){
-            var style = ""
-            for (var key in value){
-                style += `${key}:${value[key]};`
-            }
-            return style
-
+            var style = Object.entries(value).map(([key, value]) => `${key}: ${value}`)
+            return style.join(";")
         } else return value
     },
 
