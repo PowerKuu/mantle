@@ -21,16 +21,18 @@ interface InjectOptionsType {
     target?: HTMLElement
 }
 
-interface OptionsType {
-    source?: string,
-    search?: string,
-    lowercase?: boolean,
-}
 
 interface RouterEventsType {
     "load": (path: string, error: boolean) => void,
     "path": (path: string) => void,
     "404": (path: string) => void,
+}
+
+interface OptionsType {
+    source?: string,
+    search?: string,
+    lowercase?: boolean,
+    fallback?: RouterEventsType["404"],
 }
 
 interface FilterTypes {
@@ -107,6 +109,11 @@ export class Router extends NanoEventEmitter<RouterEventsType> {
         this.options.source = options.source ?? DeafultOptions.source
         this.options.search = options.search ?? DeafultOptions.search
         this.options.lowercase = options.lowercase ?? DeafultOptions.lowercase
+
+        if  (options.fallback){
+            if (this.options.fallback) this.options.fallback("")
+            this.options.fallback = this.on("404", (path) => options.fallback(path))
+        }
     }
 
     public InjectItems(items: MantleNodeType, options: InjectOptionsType = DeafultInjectOptions) {
@@ -284,7 +291,7 @@ export class LanguageManger {
     private map: LanguageMapType = {}
     public source = $router.language
 
-    public SetSource(source: string) {
+    public SetSource(source: string = $router.language) {
         this.source = source
     }
 
@@ -294,6 +301,10 @@ export class LanguageManger {
 
     public get(code: string) {
         return this.map[code][this.source]
+    }
+
+    public clear(){
+        this.map = {}
     }
 
 }
