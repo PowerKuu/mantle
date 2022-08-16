@@ -25,8 +25,8 @@ export class MantleNode<HTMLElementType extends HTMLElementTypes>{
         this.attr = {}
 
         for (var key in attr) {
-            const CunstomAttribute = CustomAttributeMap[key]
-            const value = CunstomAttribute ? CunstomAttribute(attr[key], this) : attr[key]
+            const CustomAttribute = CustomAttributeMap[key]
+            const value = CustomAttribute ? CustomAttribute(attr[key], this) : attr[key]
             if (!value) continue
             else this.element.setAttribute(key, value)
         }
@@ -35,8 +35,8 @@ export class MantleNode<HTMLElementType extends HTMLElementTypes>{
 
     UpdateAttributes(attr: Object) {
         for (var key in attr) {
-            const CunstomAttribute = CustomAttributeMap[key]
-            const value = CunstomAttribute ? CunstomAttribute(attr[key], this) : attr[key]
+            const CustomAttribute = CustomAttributeMap[key]
+            const value = CustomAttribute ? CustomAttribute(attr[key], this) : attr[key]
             if (!value) continue
             else this.element.setAttribute(key, value)
         }
@@ -105,7 +105,7 @@ export class MantleNode<HTMLElementType extends HTMLElementTypes>{
     }
 }
 
-const SingelFunctionIdentifier = "_SignalElementUUID_"
+const SingelFunctionIdentifier = "_SingleElementUUID_"
 
 export function $singel<SingeltonType extends (... args: any[]) => DynamicMantleNodeType>(func:SingeltonType, initial:DynamicMantleNodeType) {
     var current = initial
@@ -148,14 +148,14 @@ const FunctionAttribute = (attr) => (value, element:DynamicMantleNodeType) => {
 }
 
 const CustomAttributeMap = {
-    style(value) {
+    style(value:any) {
         if (value instanceof Object){
             var style = Object.entries(value).map(([key, value]) => `${key}: ${value}`)
             return style.join(";")
         } else return value
     },
 
-    class(value) {
+    class(value:any) {
         if (value instanceof Array) return value.join(" ")
         else return value
     },

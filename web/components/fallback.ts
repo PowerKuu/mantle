@@ -12,7 +12,7 @@ export default function fallback(link:string = "/home", title: string = "Not Fou
         },
         class: style.link
     }) : ""
-
+    
     return $("main", [
         $("h1", ["404"], style.h1),
         $("p", ["The requested page was not found."], style.p),
