@@ -13,13 +13,13 @@ export class MantleNode<HTMLElementType extends HTMLElementTypes>{
 
     public AllowUnsafeHTML:boolean = false
 
-    constructor(public tag: MantleTagType, children:MantleChildren = [], attr: Object = {}) { 
+    constructor(public tag: MantleTagType, children:MantleChildren = [], attr: Object|string = {}) { 
         this.element = document.createElement(tag) as HTMLElementType
 
         this.AppendChildren(children)
         
-        if (Array.isArray(attr)) this.UpdateAttributes({class: attr})
-        else this.UpdateAttributes(attr)
+        if (Array.isArray(attr)) this.UpdateAttributes(attr)
+        else this.UpdateAttributes({class: attr})
     }
 
     UpdateAttributes(attr: Object) {
