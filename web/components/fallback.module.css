@@ -1,13 +1,8 @@
 .main {
     margin: 5rem 0 0 5rem;
-
-    display: block;
 }
 
-.h1, .p .link {
-    margin-top: 0;
-    margin-bottom: 2rem;
-
+.h1, .p, .link {
     font-family: Arial, sans-serif;
 }
 
@@ -17,38 +12,23 @@
     font-weight: 700;
     font-size: 4.5rem;
 
-    margin-block-start: 0.67em;
-    margin-block-end: 0.67em;
-    margin-inline-start: 0px;
-    margin-inline-end: 0px;
-
-    display: block;
+    margin-bottom: 0.1em;
 }
 
 .p {
     color: #7d7d7d;
     font-size: 1.75rem;
 
-    margin-block-start: 1em;
-    margin-block-end: 1em;
-    margin-inline-start: 0px;
-    margin-inline-end: 0px;
-
-    display: block;
-
-    margin-bottom: 1rem;
+    margin-bottom: 0rem;
 }
 
 .link {
-    color: #0000ee;
-    font-size: 1rem;
+    transition: 0.2s;
 
-    margin-block-start: 1em;
-    margin-block-end: 1em;
-    margin-inline-start: 0px;
-    margin-inline-end: 0px;
+    color: #5050ff;
+    font-size: 1.2rem;
 
-    display: block;
+    margin-top: 0.4rem;
 }
 
 .link:hover {
