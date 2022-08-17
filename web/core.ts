@@ -1,3 +1,5 @@
+import $router from "./router"
+
 export type ValueOf<T> = T[keyof T]
 export type HTMLElementTypes = ValueOf<HTMLElementTagNameMap>
 export type DynamicMantleNodeType = MantleNode<HTMLElementTypes>
@@ -7,7 +9,7 @@ export type MantleChildren = (DynamicMantleNodeType|HTMLElementTypes|Function|st
 export class MantleNode<HTMLElementType extends HTMLElementTypes>{
     attr: Object = {}
     element: HTMLElementType
-    singeltons: HTMLElementTypes[]
+    singletons: HTMLElementTypes[]
 
     public AllowUnsafeHTML:boolean = false
 
@@ -20,35 +22,30 @@ export class MantleNode<HTMLElementType extends HTMLElementTypes>{
         else this.UpdateAttributes(attr)
     }
 
-    SetAttributes(attr: Object) {
-        this.ClearAttributes()
-        this.attr = {}
-
+    UpdateAttributes(attr: Object) {
         for (var key in attr) {
-            const CunstomAttribute = CustomAttributeMap[key]
-            const value = CunstomAttribute ? CunstomAttribute(attr[key], this) : attr[key]
+            const CustomAttribute:Function = CustomAttributeMap[key]
+            const value = CustomAttribute ? CustomAttribute(attr[key], this) : attr[key]
+
             if (!value) continue
             else this.element.setAttribute(key, value)
         }
+
         this.attr = attr
     }
 
-    UpdateAttributes(attr: Object) {
-        for (var key in attr) {
-            const CunstomAttribute = CustomAttributeMap[key]
-            const value = CunstomAttribute ? CunstomAttribute(attr[key], this) : attr[key]
-            if (!value) continue
-            else this.element.setAttribute(key, value)
-        }
-        this.attr = attr
+    SetAttributes(attr: Object) {
+        this.ClearAttributes()
+        this.attr = {}
+        this.UpdateAttributes(attr)
     }
 
     AppendChildren(children: MantleChildren) {
         for (var child of children){
             if (typeof child === "string") {this.AppendString(child)}
 
-            else if (child instanceof Function && child[SingelFunctionIdentifier]) {
-                this.AppendMantleNode(child[SingelFunctionIdentifier])
+            else if (child instanceof Function && child[SingleFunctionIdentifier]) {
+                this.AppendMantleNode(child[SingleFunctionIdentifier])
             }
             else if (child instanceof MantleNode) {
                 this.AppendMantleNode(child)
@@ -105,12 +102,12 @@ export class MantleNode<HTMLElementType extends HTMLElementTypes>{
     }
 }
 
-const SingelFunctionIdentifier = "_SignalElementUUID_"
+const SingleFunctionIdentifier = "_SingleElementUUID_"
 
-export function $singel<SingeltonType extends (... args: any[]) => DynamicMantleNodeType>(func:SingeltonType, initial:DynamicMantleNodeType) {
+export function $single<SingletonType extends (... args: any[]) => DynamicMantleNodeType>(func:SingletonType, initial:DynamicMantleNodeType) {
     var current = initial
 
-    const update = (...args:Parameters<SingeltonType>):DynamicMantleNodeType => {
+    const update = (...args:Parameters<SingletonType>):DynamicMantleNodeType => {
         const update = func(...args)
 
         if (current.compare(update)) {
@@ -125,7 +122,7 @@ export function $singel<SingeltonType extends (... args: any[]) => DynamicMantle
         return initial
     }
 
-    update[SingelFunctionIdentifier] = current
+    update[SingleFunctionIdentifier] = current
     return update
 }
 
@@ -148,16 +145,21 @@ const FunctionAttribute = (attr) => (value, element:DynamicMantleNodeType) => {
 }
 
 const CustomAttributeMap = {
-    style(value) {
+    style(value:any) {
         if (value instanceof Object){
             var style = Object.entries(value).map(([key, value]) => `${key}: ${value}`)
             return style.join(";")
         } else return value
     },
 
-    class(value) {
+    class(value:any) {
         if (value instanceof Array) return value.join(" ")
         else return value
+    },
+
+    href(value:string|Function, node:DynamicMantleNodeType) {
+        if (value instanceof Function) node.element.onclick = value as any
+        else node.element.onclick = () => $router.UpdatePathState(value)
     },
 
     onabort: FunctionAttribute("onabort"),
