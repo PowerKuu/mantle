@@ -9,17 +9,19 @@ export type MantleChildren = (DynamicMantleNodeType|HTMLElementTypes|Function|st
 export class MantleNode<HTMLElementType extends HTMLElementTypes>{
     attr: Object = {}
     element: HTMLElementType
-    singletons: HTMLElementTypes[]
 
     public AllowUnsafeHTML:boolean = false
 
-    constructor(public tag: MantleTagType, children:MantleChildren = [], attr: Object|string = {}) { 
+    constructor(public tag: MantleTagType, children:MantleChildren = [], attr: Object|Array<string>|string = {}) { 
         this.element = document.createElement(tag) as HTMLElementType
 
         this.AppendChildren(children)
         
-        if (Array.isArray(attr)) this.UpdateAttributes(attr)
-        else this.UpdateAttributes({class: attr})
+        if (Array.isArray(attr) || typeof attr === "string" || attr instanceof String) {
+            this.UpdateAttributes({class: attr})
+        }else {
+            this.UpdateAttributes(attr)
+        }
     }
 
     UpdateAttributes(attr: Object) {
@@ -115,7 +117,7 @@ export function $single<SingletonType extends (... args: any[]) => DynamicMantle
             current.destroy()
             current = update
         } else {
-            current.element.parentElement.replaceChild(update.element,current.element)
+            current.element.parentElement.replaceChild(update.element, current.element)
             current.destroy()
             current = update
         }
