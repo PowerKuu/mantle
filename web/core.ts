@@ -1,3 +1,5 @@
+import $router from "./router"
+
 export type ValueOf<T> = T[keyof T]
 export type HTMLElementTypes = ValueOf<HTMLElementTagNameMap>
 export type DynamicMantleNodeType = MantleNode<HTMLElementTypes>
@@ -7,48 +9,45 @@ export type MantleChildren = (DynamicMantleNodeType|HTMLElementTypes|Function|st
 export class MantleNode<HTMLElementType extends HTMLElementTypes>{
     attr: Object = {}
     element: HTMLElementType
-    singeltons: HTMLElementTypes[]
 
     public AllowUnsafeHTML:boolean = false
 
-    constructor(public tag: MantleTagType, children:MantleChildren = [], attr: Object = {}) { 
+    constructor(public tag: MantleTagType, children:MantleChildren = [], attr: Object|Array<string>|string = {}) { 
         this.element = document.createElement(tag) as HTMLElementType
 
         this.AppendChildren(children)
         
-        if (Array.isArray(attr)) this.UpdateAttributes({class: attr})
-        else this.UpdateAttributes(attr)
+        if (Array.isArray(attr) || typeof attr === "string" || attr instanceof String) {
+            this.UpdateAttributes({class: attr})
+        }else {
+            this.UpdateAttributes(attr)
+        }
+    }
+
+    UpdateAttributes(attr: Object) {
+        for (var key in attr) {
+            const CustomAttribute:Function = CustomAttributeMap[key]
+            const value = CustomAttribute ? CustomAttribute(attr[key], this) : attr[key]
+
+            if (!value) continue
+            else this.element.setAttribute(key, value)
+        }
+
+        this.attr = attr
     }
 
     SetAttributes(attr: Object) {
         this.ClearAttributes()
         this.attr = {}
-
-        for (var key in attr) {
-            const CustomAttribute = CustomAttributeMap[key]
-            const value = CustomAttribute ? CustomAttribute(attr[key], this) : attr[key]
-            if (!value) continue
-            else this.element.setAttribute(key, value)
-        }
-        this.attr = attr
-    }
-
-    UpdateAttributes(attr: Object) {
-        for (var key in attr) {
-            const CustomAttribute = CustomAttributeMap[key]
-            const value = CustomAttribute ? CustomAttribute(attr[key], this) : attr[key]
-            if (!value) continue
-            else this.element.setAttribute(key, value)
-        }
-        this.attr = attr
+        this.UpdateAttributes(attr)
     }
 
     AppendChildren(children: MantleChildren) {
         for (var child of children){
             if (typeof child === "string") {this.AppendString(child)}
 
-            else if (child instanceof Function && child[SingelFunctionIdentifier]) {
-                this.AppendMantleNode(child[SingelFunctionIdentifier])
+            else if (child instanceof Function && child[SingleFunctionIdentifier]) {
+                this.AppendMantleNode(child[SingleFunctionIdentifier])
             }
             else if (child instanceof MantleNode) {
                 this.AppendMantleNode(child)
@@ -105,12 +104,12 @@ export class MantleNode<HTMLElementType extends HTMLElementTypes>{
     }
 }
 
-const SingelFunctionIdentifier = "_SingleElementUUID_"
+const SingleFunctionIdentifier = "_SingleElementUUID_"
 
-export function $singel<SingeltonType extends (... args: any[]) => DynamicMantleNodeType>(func:SingeltonType, initial:DynamicMantleNodeType) {
+export function $single<SingletonType extends (... args: any[]) => DynamicMantleNodeType>(func:SingletonType, initial:DynamicMantleNodeType) {
     var current = initial
 
-    const update = (...args:Parameters<SingeltonType>):DynamicMantleNodeType => {
+    const update = (...args:Parameters<SingletonType>):DynamicMantleNodeType => {
         const update = func(...args)
 
         if (current.compare(update)) {
@@ -118,14 +117,14 @@ export function $singel<SingeltonType extends (... args: any[]) => DynamicMantle
             current.destroy()
             current = update
         } else {
-            current.element.parentElement.replaceChild(update.element,current.element)
+            current.element.parentElement.replaceChild(update.element, current.element)
             current.destroy()
             current = update
         }
         return initial
     }
 
-    update[SingelFunctionIdentifier] = current
+    update[SingleFunctionIdentifier] = current
     return update
 }
 
@@ -158,6 +157,11 @@ const CustomAttributeMap = {
     class(value:any) {
         if (value instanceof Array) return value.join(" ")
         else return value
+    },
+
+    href(value:string|Function, node:DynamicMantleNodeType) {
+        if (value instanceof Function) node.element.onclick = value as any
+        else node.element.onclick = () => $router.UpdatePathState(value)
     },
 
     onabort: FunctionAttribute("onabort"),
