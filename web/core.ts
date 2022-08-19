@@ -76,11 +76,20 @@ export class MantleNode<HTMLElementType extends HTMLElementTypes>{
         else this.element.innerText += str
     }
 
-    //? Utility functions
+    //? Utility function
     compare(node: MantleNode<HTMLElementType>): boolean {
         if (this.tag != node.tag) return false
         if (JSON.stringify(this.attr) != JSON.stringify(node.attr)) return false
         return true
+    }
+
+    SetClass(ClassName: string, add: boolean = true) {
+        if (add) this.element.classList.add(ClassName)
+        else this.element.classList.remove(ClassName)
+    }
+
+    ToggelClass(ClassName: string) {
+        this.element.classList.toggle(ClassName)
     }
 
     ClearChildren(){

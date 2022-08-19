@@ -33,6 +33,7 @@ interface OptionsType {
     search?: string,
     lowercase?: boolean,
     fallback?: RouterEventsType["404"],
+    inject?: InjectOptionsType
 }
 
 interface FilterTypes {
@@ -83,11 +84,11 @@ export const DeafultOptions: OptionsType = {
     source: window.location.pathname,
     search: window.location.search,
     lowercase: false,
-}
 
-export const DeafultInjectOptions: InjectOptionsType = {
-    overwrite: true,
-    target: document.getElementById("app") ?? document.body,
+    inject: {
+        overwrite: true,
+        target: document.getElementById("app") ?? document.body,
+    },
 }
 //
 
@@ -110,13 +111,16 @@ export class Router extends NanoEventEmitter<RouterEventsType> {
         this.options.search = options.search ?? DeafultOptions.search
         this.options.lowercase = options.lowercase ?? DeafultOptions.lowercase
 
+        this.options.inject = options.inject ?? DeafultOptions.inject
+
         if  (options.fallback){
+            //! Remvoe the event listener if it exists
             if (this.options.fallback) this.options.fallback("")
             this.options.fallback = this.on("404", (path) => options.fallback(path))
         }
     }
 
-    public InjectItems(items: MantleNodeType, options: InjectOptionsType = DeafultInjectOptions) {
+    public InjectItems(items: MantleNodeType, options: InjectOptionsType = this.options.inject) {
         const {target, overwrite} = options
         function InjectItem(item: HTMLElement | DynamicMantleNodeType) {
             const HTMLElement = item["element"] ? item["element"] : item
@@ -184,9 +188,9 @@ export class Router extends NanoEventEmitter<RouterEventsType> {
 
 
 
-    public AddPath(match:string, callback:PathCallbackType, inject:InjectOptionsType = DeafultInjectOptions, InjectPriority:number = 0) {
-        const target = inject.target ?? DeafultInjectOptions.target
-        const overwrite = inject.overwrite ?? DeafultInjectOptions.overwrite
+    public AddPath(match:string, callback:PathCallbackType, inject:InjectOptionsType = this.options.inject, InjectPriority:number = 0) {
+        const target = inject.target ?? this.options.inject.target
+        const overwrite = inject.overwrite ?? this.options.inject.overwrite
         
         if (!target) throw new Error("No target element specified")
 
