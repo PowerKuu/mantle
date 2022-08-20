@@ -6,6 +6,7 @@
   "license": "ISC",
   "dependencies": {
     "nanoevents": "^7.0.1",
-    "normalize-path": "^3.0.0"
+    "normalize-path": "^3.0.0",
+    "socket.io-client": "^4.5.1"
   }
 }

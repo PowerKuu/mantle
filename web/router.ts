@@ -39,7 +39,6 @@ interface OptionsType {
 interface FilterTypes {
     "probability": number,
     "user-agent": string[],
-
     "ip": string[],
     "hostname": string[],
     "city": string[],

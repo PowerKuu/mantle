@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "nanoevents": "^7.0.1",
-    "normalize-path": "^3.0.0"
-  }
-}
