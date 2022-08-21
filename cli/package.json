@@ -1,0 +1,13 @@
+{
+  "name": "mantle-init",
+  "version": "1.0.6",
+  "author": "PowerKuu",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "fs-extra": "^10.1.0"
+  },
+  "main": "bin/init.js",
+  "bin": "bin/init.js",
+  "description": ""
+}
