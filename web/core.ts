@@ -137,7 +137,7 @@ export function $single<SingletonType extends (... args: any[]) => DynamicMantle
     return update
 }
 
-export function $<K extends keyof HTMLElementTagNameMap>(tag: K, children:MantleChildren = [], attr: Object = {}): MantleNode<HTMLElementTagNameMap[K]>{
+export function $<T extends keyof HTMLElementTagNameMap>(tag: T, children:MantleChildren = [], attr: Object = {}): MantleNode<HTMLElementTagNameMap[T]>{
     return new MantleNode(tag, children, attr)
 }
 
@@ -149,6 +149,8 @@ export function $escape(str: string): string {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;")
 }
+
+export default $
 
 const FunctionAttribute = (attr) => (value, element:DynamicMantleNodeType) => {
     if (value instanceof Function) element.element[attr] = (...args) => {value(element, ...args)}
