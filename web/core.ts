@@ -115,7 +115,7 @@ export class MantleNode<HTMLElementType extends HTMLElementTypes>{
 
 const SingleFunctionIdentifier = "_SingleElementUUID_"
 
-export function $single<SingletonType extends (... args: any[]) => DynamicMantleNodeType>(func:SingletonType, initial:DynamicMantleNodeType) {
+export function $single<SingletonType extends (... args: any[]) => DynamicMantleNodeType>(func:SingletonType, initial:DynamicMantleNodeType = func()) {
     var current = initial
 
     const update = (...args:Parameters<SingletonType>):DynamicMantleNodeType => {
