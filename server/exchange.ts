@@ -1,13 +1,14 @@
 import {Server as SocketServer, ServerOptions, Socket} from "socket.io"
 
-interface ExchangeType {
-    send: (value:any) => any,
+export interface ExchangeType {
+    send: (value:any) => boolean,
+    end: () => boolean,
     socket: Socket,
 }
 
-type CallType = (exchange:ExchangeType, ...args:any[]) => any
+export type CallType = (exchange:ExchangeType, ...args:any[]) => any
 
-export default class ExchangeServer {
+export class ExchangeServer {
     connections:Socket[] = []
 
     constructor(
@@ -34,14 +35,26 @@ export default class ExchangeServer {
     }
 
     private registerCall<LocalCallType extends CallType>(socket:Socket, call:LocalCallType) {
-        const exchange:ExchangeType = {
-            send: (value:any) => socket.emit(call.name, value),
-            socket: socket,
+        function CreateExchange(id:string):ExchangeType {
+            return {
+                send: (data:any) => socket.emit(call.name, {
+                    id: id,
+                    data: data,
+                    end: false
+                }),
+                end: () => socket.emit(call.name, {
+                    id: id,
+                    data: undefined,
+                    end: true
+                }),
+                socket: socket,
+            }
         }
         
-        socket.on(call.name, (...args) => {
-            call(exchange, ...args)
+        socket.on(call.name, ({id, args}) => {
+            call(CreateExchange(id), ...args)
         })
     }
 }
 
+export default ExchangeServer

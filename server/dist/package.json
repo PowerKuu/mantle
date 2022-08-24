@@ -1,12 +1,12 @@
 {
   "name": "mantle-server",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "author": "PowerKuu",
   "license": "ISC",
   "dependencies": {
     "socket.io": "^4.5.1"
   },
-  "main": "server.ts",
+  "types": "index.d.ts",
   "devDependencies": {},
   "keywords": [],
   "description": ""

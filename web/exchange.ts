@@ -1,36 +1,35 @@
 import { io, ManagerOptions, Socket, SocketOptions } from "socket.io-client"
 
 export default class ExchangeClient {
+    public EndID = ""
+
     constructor(
         public options:Partial<ManagerOptions & SocketOptions>, 
         public socket:Socket = io(options)
     ){}
     
-    start(func:string, ...args:any[]) {
-        const callbacks = []
-        var history = []
+    start(func:string, callback: (data:any) => void, ...args:any[]) {
+        var LocalId = (Math.random() * 10000).toFixed(5).toString()
 
-        this.socket.emit(func, ...args)
+        this.socket.emit(func, {
+            args: args,
+            id: LocalId
+        })
 
-        const event = this.socket.on(func, (data:any) => {
-            history.push(data)
-            callbacks.forEach((callback) => callback(data))
+        const event = this.socket.on(func, (payload:any) => {
+            const {id, data, end} = payload
+
+            const destroy = () => {
+                event.removeAllListeners()
+            }
+
+            if (LocalId !== id) return
+            if (end) return destroy()
+            callback(data)
         }).on("error", (err) => {
             console.error(err)
         }).on("disconnect", () => {
             console.error(new Error("Disconnected"))
         })
-
-        return {
-            data: (callback:(data:any) => void) => {
-                history.forEach(callback)
-                callbacks.push(callback)
-            },
-
-            end: () => {
-                history = []
-                event.removeAllListeners()
-            }
-        }
     }
 }
