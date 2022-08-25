@@ -4,7 +4,7 @@ export default class ExchangeClient {
     public EndID = ""
 
     constructor(
-        public options:Partial<ManagerOptions & SocketOptions>, 
+        public options:Partial<ManagerOptions & SocketOptions>|string, 
         public socket:Socket = io(options)
     ){}
     
