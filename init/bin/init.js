@@ -242,7 +242,7 @@ async function create(name) {
 
     fsextra.emptyDirSync(SrcFolder)
     fsextra.emptyDirSync(PublicFolder)
-    fs.writeFileSync(path.join(SrcFolder, "main.ts"), "")
+    fs.writeFileSync(path.join(SrcFolder, "main.ts"), `import { $ } from "mantle-web/core"`)
 
     fs.writeFileSync(path.join(root, "index.html"), CreateIndex(name))
     fs.writeFileSync(path.join(root, "tsconfig.json"), CreateTsconfig())
@@ -253,7 +253,7 @@ async function create(name) {
     fs.mkdirSync(path.join(root, "/src/components"))
     fs.mkdirSync(path.join(root, "/src/styles"))
 
-    console.log(chalk.green(`Created ${name} at ${root} using mantle.cli`))
+    console.log(chalk.green(`Created ${name} at ${root} using mantle-init`))
     
     return false
 }
