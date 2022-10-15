@@ -44,9 +44,7 @@ export class MantleNode<HTMLElementType extends HTMLElementTypes>{
 
     AppendChildren(children: MantleChildren) {
         for (var child of children){
-            if (typeof child === "string") {this.AppendString(child)}
-
-            else if (child instanceof Function && child[SingleFunctionIdentifier]) {
+            if (child instanceof Function && child[SingleFunctionIdentifier]) {
                 this.AppendMantleNode(child[SingleFunctionIdentifier])
             }
             else if (child instanceof MantleNode) {
@@ -54,6 +52,9 @@ export class MantleNode<HTMLElementType extends HTMLElementTypes>{
             }
             else if (child instanceof HTMLElement) {
                 this.AppendHTMLElement(child)
+            }
+            else {
+                this.AppendString(String(child))
             }
         }
     }
