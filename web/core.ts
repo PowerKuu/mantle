@@ -12,7 +12,7 @@ export class MantleNode<HTMLElementType extends HTMLElementTypes>{
 
     public AllowUnsafeHTML:boolean = false
 
-    constructor(public tag: MantleTagType, children:MantleChildren = [], attr: Object|Array<string>|string = {}) { 
+    constructor(public tag: MantleTagType, attr: Object|Array<string>|string = {}, children:MantleChildren = []) { 
         this.element = document.createElement(tag) as HTMLElementType
 
         this.AppendChildren(children)
@@ -137,8 +137,8 @@ export function single<SingletonType extends (... args: any[]) => DynamicMantleN
     return update
 }
 
-export function node<T extends keyof HTMLElementTagNameMap>(tag: T, children:MantleChildren = [], attr: Object = {}): MantleNode<HTMLElementTagNameMap[T]>{
-    return new MantleNode(tag, children, attr)
+export function node<T extends keyof HTMLElementTagNameMap>(tag: T, attr: Object = {}, children:MantleChildren = []): MantleNode<HTMLElementTagNameMap[T]>{
+    return new MantleNode(tag, attr, children)
 }
 
 export function escape(str: string): string {
