@@ -25,7 +25,7 @@ function CreateIndex(name){
 `.trim()
 }
 
-function CreateTsconfig(){
+function CreateTsConfig(){
     return `
 {
     "compilerOptions": {
@@ -43,11 +43,26 @@ function CreateTsconfig(){
         "noUnusedLocals": true,
         "noUnusedParameters": true,
         "noImplicitReturns": true,
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "jsx": "preserve",
     },
 
     "include": ["src", "types.d.ts"]
 }
+`.trim()
+}
+
+function CreateViteConfig(){
+    return `
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+    esbuild: {
+    jsxFactory: 'factory',
+    jsxFragment: 'fragment',
+    jsxInject: \`import {factory, fragment} from 'mantle/jsm'\`
+    }
+})
 `.trim()
 }
 
@@ -245,7 +260,8 @@ async function create(name) {
     fs.writeFileSync(path.join(SrcFolder, "main.ts"), `import { $ } from "mantle-web/core"`)
 
     fs.writeFileSync(path.join(root, "index.html"), CreateIndex(name))
-    fs.writeFileSync(path.join(root, "tsconfig.json"), CreateTsconfig())
+    fs.writeFileSync(path.join(root, "tsconfig.json"), CreateTsConfig())
+    fs.writeFileSync(path.join(root, "types.d.ts"), CreateViteConfig())
     fs.writeFileSync(path.join(root, "types.d.ts"), `declare module "*.module.css";`)
     fs.writeFileSync(path.join(root, ".gitignore"), CreateGitIgnore())
 

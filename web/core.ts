@@ -1,4 +1,4 @@
-import $router from "./router"
+import router from "./router"
 
 export type ValueOf<T> = T[keyof T]
 export type HTMLElementTypes = ValueOf<HTMLElementTagNameMap>
@@ -115,7 +115,7 @@ export class MantleNode<HTMLElementType extends HTMLElementTypes>{
 
 const SingleFunctionIdentifier = "_SingleElementUUID_"
 
-export function $single<SingletonType extends (... args: any[]) => DynamicMantleNodeType>(func:SingletonType, initial:DynamicMantleNodeType = func()) {
+export function single<SingletonType extends (... args: any[]) => DynamicMantleNodeType>(func:SingletonType, initial:DynamicMantleNodeType = func()) {
     var current = initial
 
     const update = (...args:Parameters<SingletonType>):DynamicMantleNodeType => {
@@ -137,11 +137,11 @@ export function $single<SingletonType extends (... args: any[]) => DynamicMantle
     return update
 }
 
-export function $<T extends keyof HTMLElementTagNameMap>(tag: T, children:MantleChildren = [], attr: Object = {}): MantleNode<HTMLElementTagNameMap[T]>{
+export function node<T extends keyof HTMLElementTagNameMap>(tag: T, children:MantleChildren = [], attr: Object = {}): MantleNode<HTMLElementTagNameMap[T]>{
     return new MantleNode(tag, children, attr)
 }
 
-export function $escape(str: string): string {
+export function escape(str: string): string {
     return str         
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -150,7 +150,7 @@ export function $escape(str: string): string {
     .replace(/'/g, "&#039;")
 }
 
-export default $
+export default node
 
 const FunctionAttribute = (attr) => (value, element:DynamicMantleNodeType) => {
     if (value instanceof Function) element.element[attr] = (...args) => {value(element, ...args)}
@@ -172,7 +172,7 @@ const CustomAttributeMap = {
 
     href(value:string|Function, node:DynamicMantleNodeType) {
         if (value instanceof Function) node.element.onclick = value as any
-        else node.element.onclick = () => $router.UpdatePathState(value)
+        else node.element.onclick = () => router.UpdatePathState(value)
     },
 
     onabort: FunctionAttribute("onabort"),

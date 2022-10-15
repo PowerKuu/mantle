@@ -286,15 +286,15 @@ export class Router extends NanoEventEmitter<RouterEventsType> {
 }
 
 // Create singelton
-export const $router = new Router()
-export default $router
+export const router = new Router()
+export default router
 //
 
 export class LanguageManger {
     private map: LanguageMapType = {}
-    public source = $router.language
+    public source = router.language
 
-    public SetSource(source: string = $router.language) {
+    public SetSource(source: string = router.language) {
         this.source = source
     }
 
@@ -313,5 +313,5 @@ export class LanguageManger {
 }
 
 // Create singelton
-export const $language = new LanguageManger()
+export const language = new LanguageManger()
 //
