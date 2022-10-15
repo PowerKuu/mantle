@@ -16,7 +16,7 @@ function CreateIndex(name){
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${name}</title>
 
-    <script type="module" src="/src/main.ts" defer></script>
+    <script type="module" src="/src/main.tsx" defer></script>
 </head>
     <body>
         <div id="app"></div>
@@ -58,9 +58,9 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
     esbuild: {
-    jsxFactory: 'factory',
-    jsxFragment: 'fragment',
-    jsxInject: \`import {factory, fragment} from 'mantle/jsm'\`
+    jsxFactory: '_factory_',
+    jsxFragment: '_fragment_',
+    jsxInject: \`import {_factory_, _fragment_} from 'mantle-web/tsm'\`
     }
 })
 `.trim()
@@ -257,7 +257,7 @@ async function create(name) {
 
     fsextra.emptyDirSync(SrcFolder)
     fsextra.emptyDirSync(PublicFolder)
-    fs.writeFileSync(path.join(SrcFolder, "main.ts"), `import { $ } from "mantle-web/core"`)
+    fs.writeFileSync(path.join(SrcFolder, "main.tsx"), `import { router } from "mantle-web/router"`)
 
     fs.writeFileSync(path.join(root, "index.html"), CreateIndex(name))
     fs.writeFileSync(path.join(root, "tsconfig.json"), CreateTsConfig())
