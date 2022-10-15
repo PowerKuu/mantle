@@ -261,7 +261,7 @@ async function create(name) {
 
     fs.writeFileSync(path.join(root, "index.html"), CreateIndex(name))
     fs.writeFileSync(path.join(root, "tsconfig.json"), CreateTsConfig())
-    fs.writeFileSync(path.join(root, "types.d.ts"), CreateViteConfig())
+    fs.writeFileSync(path.join(root, "vite.config.js"), CreateViteConfig())
     fs.writeFileSync(path.join(root, "types.d.ts"), `declare module "*.module.css";`)
     fs.writeFileSync(path.join(root, ".gitignore"), CreateGitIgnore())
 
