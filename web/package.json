@@ -1,6 +1,6 @@
 {
   "name": "mantle-web",
-  "version": "1.3.6",
+  "version": "1.4.0",
   "description": "Simple webframe work that does not require jsx or state",
   "author": "PowerKuu",
   "license": "ISC",
